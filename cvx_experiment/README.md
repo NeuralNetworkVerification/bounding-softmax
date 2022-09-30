@@ -1,4 +1,3 @@
-To obtain the weights of the network:
 
 - robust_mnist2x10.onnx
 
