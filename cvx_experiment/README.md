@@ -20,3 +20,7 @@ To obtain the weights of the network:
 - bounds/
 
   The bounds folder contains the bounds of neurons given an l-inf ball with radius epsilon around an image derived by CROWN.
+
+- print_bounds.py
+
+  Example of loading the pickled bound files.
