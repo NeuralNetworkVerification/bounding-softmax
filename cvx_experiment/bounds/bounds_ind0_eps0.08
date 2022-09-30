@@ -1,3 +1,6 @@
+network output [1.5674712e-05 4.2684683e-06 5.5724362e-05 1.9682304e-04 2.6018217e-05
+ 1.0738525e-05 2.3874140e-08 9.9909675e-01 1.2070533e-06 5.9277081e-04]
+correct label: 7
 Number of layers: 11. Sizes:
 	Layer 0: 784 	[INPUT]	Source layers:
 	Layer 1: 10 	[WEIGHTED_SUM]	Source layers: 0
@@ -1066,11 +1069,7 @@ Layer 9:
 	Neuron10	LB: 0.0001, UB: 0.0155 
 
 Layer 10:
-	Neuron1	LB: 0.9621,network output [1.5674712e-05 4.2684683e-06 5.5724362e-05 1.9682304e-04 2.6018217e-05
- 1.0738525e-05 2.3874140e-08 9.9909675e-01 1.2070533e-06 5.9277081e-04]
-correct label: 7
-UNKNOWN
- UB: 0.9999 
+	Neuron1	LB: 0.9621, UB: 0.9999 
 	Neuron2	LB: 0.9658, UB: 0.9999 
 	Neuron3	LB: 0.9633, UB: 0.9998 
 	Neuron4	LB: 0.9560, UB: 0.9998 
