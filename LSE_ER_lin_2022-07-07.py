@@ -72,6 +72,25 @@ def eval_hybrid_l(X, l, u):
     hybrid_l = np.exp(X[:, 0]) / se_u
     return hybrid_l
 
+def eval_hybrid2_l(X, l, u):
+    """
+    Evaluate second hybrid LSE-ER lower bound at points in X (shape (n, d))
+    """
+    # Component with largest midpoint
+    jmax = (l + u).argmax()
+    # Differences w.r.t. largest component and bounds on differences
+    d = X.shape[1]
+    others = np.arange(d) != jmax
+    diffs = X - X[:, [jmax]]
+    diffs_l = l[others] - u[jmax]
+    diffs_u = u[others] - l[jmax]
+    # Linear upper bound on sum of exponentials
+    a = (np.exp(diffs_u) - np.exp(diffs_l)) / (diffs_u - diffs_l)
+    b = ((diffs_u * np.exp(diffs_l) - diffs_l * np.exp(diffs_u)) / (diffs_u - diffs_l)).sum()
+    se_u = 1 + np.dot(diffs[:, others], a) + b
+    hybrid_l = np.exp(diffs[:, 0]) / se_u
+    return hybrid_l
+
 if __name__ == '__main__':
     # Parse command line arguments
     parser = argparse.ArgumentParser()
@@ -93,24 +112,27 @@ if __name__ == '__main__':
     N = 1000
     
     # Initialize results arrays
-    lbs = ['sm_l', 'ER_l', 'LSE_l', 'hybrid_l', 'lin_l']
+    lbs = ['sm_l', 'ER_l', 'LSE_l', 'hybrid_l', 'hybrid2_l', 'lin_l']
     ubs = ['sm_u', 'ER_u', 'LSE_u', 'lin_u']
-    pairs = list(product(['ER_l', 'LSE_l', 'hybrid_l'], ['ER_u', 'LSE_u'])) + [('lin_l', 'lin_u')]
+    pairs = list(product(['ER_l', 'LSE_l', 'hybrid_l', 'hybrid2_l'], ['ER_u', 'LSE_u'])) + [('lin_l', 'lin_u')]
 
     sm_u_sm_l = np.zeros((R, num_eps))
     
     max_ER_u_ER_l = np.zeros((R, num_eps))
     max_ER_u_LSE_l = np.zeros((R, num_eps))
     max_ER_u_hybrid_l = np.zeros((R, num_eps))
+    max_ER_u_hybrid2_l = np.zeros((R, num_eps))
     max_LSE_u_ER_l = np.zeros((R, num_eps))
     max_LSE_u_LSE_l = np.zeros((R, num_eps))
     max_LSE_u_hybrid_l = np.zeros((R, num_eps))
+    max_LSE_u_hybrid2_l = np.zeros((R, num_eps))
     max_lin_u_lin_l = np.zeros((R, num_eps))
     
     mean_sm_l = np.zeros((R, num_eps))
     mean_ER_l = np.zeros((R, num_eps))
     mean_LSE_l = np.zeros((R, num_eps))
     mean_hybrid_l = np.zeros((R, num_eps))
+    mean_hybrid2_l = np.zeros((R, num_eps))
     mean_lin_l = np.zeros((R, num_eps))
     mean_sm_u = np.zeros((R, num_eps))
     mean_ER_u = np.zeros((R, num_eps))
@@ -120,9 +142,11 @@ if __name__ == '__main__':
     mean_ER_u_ER_l = np.zeros((R, num_eps))
     mean_ER_u_LSE_l = np.zeros((R, num_eps))
     mean_ER_u_hybrid_l = np.zeros((R, num_eps))
+    mean_ER_u_hybrid2_l = np.zeros((R, num_eps))
     mean_LSE_u_ER_l = np.zeros((R, num_eps))
     mean_LSE_u_LSE_l = np.zeros((R, num_eps))
     mean_LSE_u_hybrid_l = np.zeros((R, num_eps))
+    mean_LSE_u_hybrid2_l = np.zeros((R, num_eps))
     mean_lin_u_lin_l = np.zeros((R, num_eps))
     
     # Iterate over repetitions
@@ -185,12 +209,24 @@ if __name__ == '__main__':
             se_u = cvx.sum((cvx.multiply(np.exp(l), u - x) + cvx.multiply(np.exp(u), x - l)) / (u - l))
             hybrid_l = cvx.exp(x[0] - cvx.log(se_u))
             
+            # Second hybrid lower bound
+            # Component with largest midpoint
+            jmax = mid.argmax()
+            others = np.arange(d) != jmax
+            # Differences w.r.t. largest component and bounds on differences
+            diffsMax = x - x[jmax]
+            diffsMax_l = l[others] - u[jmax]
+            diffsMax_u = u[others] - l[jmax]
+            # Linear upper bound on sum of exponentials
+            se_u2 = cvx.sum((cvx.multiply(np.exp(diffsMax_l), diffsMax_u - diffsMax[others]) + cvx.multiply(np.exp(diffsMax_u), diffsMax[others] - diffsMax_l)) / (diffsMax_u - diffsMax_l))
+            hybrid2_l = cvx.exp(diffsMax[0] - cvx.log(1 + se_u2))
+            
             # LSE-ER MAXIMUM GAPS
-            for lb, ub in pairs[:6]:
+            for lb, ub in pairs[:8]:
                 obj = cvx.Maximize(eval(ub) - eval(lb))
                 prob = cvx.Problem(obj, cons)
                 try:
-                    eval('max_' + ub + '_' + lb)[r, ee] = prob.solve()
+                    eval('max_' + ub + '_' + lb)[r, ee] = prob.solve(solver='SCS')
                 except cvx.error.SolverError:
                     print(f"Solver 'ECOS' failed on r = {r}, eps = {e}, lb = {lb}, ub = {ub}. Trying with 'SCS'.")
                     eval('max_' + ub + '_' + lb)[r, ee] = prob.solve(solver='SCS')
@@ -234,6 +270,7 @@ if __name__ == '__main__':
             ER_l = eval_ER_l(X, diffs_l, diffs_u)
             LSE_l = eval_LSE_l(X, lse_l, lse_u, lsm_l, lsm_u, l, u)
             hybrid_l = eval_hybrid_l(X, l, u)
+            hybrid2_l = eval_hybrid2_l(X, l, u)
             lin_u = np.dot(X, a_lin_u) + b_lin_u
             lin_l = np.dot(X, a_lin_l) + b_lin_l
             
@@ -242,7 +279,7 @@ if __name__ == '__main__':
                 gap = sm - eval(lb)
                 eval('mean_' + lb)[r, ee] = gap.mean()
                 if gap.min() < 0:
-                    print(f'Lower bound {lb} invalid!')
+                    print(f'Lower bound {lb} invalid! Min gap = {gap.min()}')
             for ub in ubs:
                 gap = eval(ub) - sm
                 eval('mean_' + ub)[r, ee] = gap.mean()
