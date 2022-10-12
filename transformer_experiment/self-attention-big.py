@@ -144,7 +144,7 @@ if __name__ == '__main__':
     print("Test loss:", score[0])
     print("Test accuracy:", score[1])
 
-    model.save('self-attention.h5')
+    #model.save('self-attention.h5')
 
 
     import keras2onnx

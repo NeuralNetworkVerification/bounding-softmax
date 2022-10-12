@@ -1,10 +1,11 @@
 from tensorflow.keras.datasets import mnist
 import numpy as np
 from scipy.special import softmax
+import sys
 
 (X,y), (Xt, yt) = mnist.load_data()
 
-W = np.load("robust_mnist2x10.npz")
+W = np.load(sys.argv[1])
 w1 = W["w1"]
 b1 = W["b1"]
 w2 = W["w2"]

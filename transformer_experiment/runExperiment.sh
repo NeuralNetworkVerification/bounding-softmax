@@ -5,15 +5,15 @@ SCRIPT=/home/haozewu/Projects/softmax/Marabou/resources/runMarabou.py
 
 NETWORK=./self-attention-small-sim.onnx
 
-for t in linear lse1 lse2 er
+for t in linear lse1 lse2 lseh er
 do
-    for e in 0.008 0.012 0.016 0.02
+    for e in 0.008 0.012 0.016
     do
         #for i in {0..2}
         for i in {0..499}
         do
             sFile="$i"_"$e"_"$t".summary
-            $SCRIPT $NETWORK --dataset mnist -i $i -e $e --softmax-bound $t --summary-file="$sFile" --verbosity=0 --num-workers=8
+            $SCRIPT $NETWORK --dataset mnist -i $i -e $e --softmax-bound $t --summary-file="$sFile" --verbosity=0
             if [ ! -f $sFile ]; then
                 echo $i $e $t misclassify >> results.csv
             elif grep -q unsat "$sFile"; then

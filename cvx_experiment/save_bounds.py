@@ -4,7 +4,7 @@ import os
 import pickle
 
 for filename in os.listdir("./bounds/"):
-    if ".npz" not in filename:
+    if ".pickle" not in filename:
         lbs = []
         ubs = []
         with open(f'./bounds/{filename}', 'r') as in_file:
@@ -21,7 +21,7 @@ for filename in os.listdir("./bounds/"):
                     ub = float(l[4])
                     lbs[-1].append(lb)
                     ubs[-1].append(ub)
-
+        print(filename)
         while lbs[0] == []:
             lbs = lbs[1:]
 
