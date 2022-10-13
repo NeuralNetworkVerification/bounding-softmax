@@ -1,6 +1,17 @@
 import pickle
 import sys
 import os
+import sys
+import numpy as np
+
+INDEX = int(sys.argv[1])
+EPS = float(sys.argv[2])
+LB = sys.argv[3]
+SCORE = sys.argv[4]
+
+objs = []
+logitss = []
+probss = []
 
 for filename in os.listdir("results"):
     ind, eps, lb, ub, score, _ = filename.split("_")
@@ -9,7 +20,11 @@ for filename in os.listdir("results"):
     lb = lb[2:]
     ub = ub[2:]
     score = score[5:]
-    with open(f'results/{filename}', 'rb') as f:
-        obj, logits, probs = pickle.load(f)
-        print(ind, eps, eps, lb, ub, obj, logits, probs)
-    
+    if ind == INDEX and eps == EPS and lb == LB and score == SCORE:
+        with open(f'results/{filename}', 'rb') as f:
+            obj, logits, probs = pickle.load(f)
+            objs.append(obj)
+            logitss.append(logits)
+            probss.append(probs)
+
+assert(len(objs) == 100)
