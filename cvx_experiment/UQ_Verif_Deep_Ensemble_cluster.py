@@ -225,6 +225,9 @@ if __name__ == '__main__':
                         b_lin_l = ((diffs_u[m, j] * np.exp(diffs_l[m, j]) - diffs_l[m, j] * np.exp(diffs_u[m, j])) / (diffs_u[m, j] - diffs_l[m, j])).sum()
                         b_lin_l = 1 / den_t * (2 - 1 / den_t * (1 + b_lin_l))
                         bnd = p[m, j] >= a_lin_l @ z[m][L] + b_lin_l
+                        # Add constant bound
+                        bnd2 = p[m, j] >= sm_l[m, j]
+                        cons.append(bnd2)
                     elif LBtype == 'ER' or j == jmax[m]:
                         # LSE2 bound same as ER bound when j = jmax
                         # Differences with z_j
@@ -249,6 +252,9 @@ if __name__ == '__main__':
                         a_lin_u[j] = -a_lin_u[others].sum()
                         b_lin_u = 1 / den_l + 1 / den_u - (1 + np.dot(np.exp(diffs_t), 1 - diffs_t)) / (den_l * den_u)
                         bnd = p[m, j] <= a_lin_u @ z[m][L] + b_lin_u
+                        # Add constant bound
+                        bnd2 = p[m, j] <= sm_u[m, j]
+                        cons.append(bnd2)
                     elif UBtype == 'ER':
                         # CAN'T USE: HAVING MORE THAN 2 OF THESE BOUNDS PREVENTS CONVERGENCE 
                         #bnd = p[j] <= sm_l[j] + sm_u[j] - sm_l[j] * sm_u[j] * (1 + cvx.sum(cvx.exp(diffs[j])))
