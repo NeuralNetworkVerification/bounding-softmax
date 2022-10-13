@@ -9,7 +9,6 @@ with open("output.csv") as in_file:
         if i > 0 and i % 7 == 0:
             print(s[:-1])
             s = f"{net},{eps},"
-        s += bound + ","
         s += str(int(num)/ 5) + ","
         i += 1
         
