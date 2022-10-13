@@ -202,11 +202,30 @@ if __name__ == '__main__':
         for m in range(M):
             # Iterate over classes
             for j in range(d):
-        
+
+                if LBtype == 'lin' or UBtype == 'lin':
+                    # Pre-compute some quantities for linear bounds
+                    # Tangent points for bounding exponentials from below
+                    diffs_t = np.minimum(np.log((np.exp(diffs_u[m, j]) - np.exp(diffs_l[m, j])) / (diffs_u[m, j] - diffs_l[m, j])), diffs_l[m, j] + 1)
+                    # Lower and upper bounds on denominator of softmax
+                    den_l = 1 + np.dot(np.exp(diffs_t), diffs_l[m, j] - diffs_t + 1)
+                    den_u = 1 + np.exp(diffs_u[m, j]).sum()
+                    # Tangent point for bounding reciprocal from below
+                    den_t = max(np.sqrt(den_l * den_u), den_u / 2)
+                
                 # Add constraint on jth softmax output
                 if j == yt[i]:
                     # Correct class, need lower bound on probability
-                    if LBtype == 'ER' or j == jmax[m]:
+                    if LBtype == 'lin':
+                        # Linear ER bound
+                        a_lin_l = np.zeros(d)
+                        others = np.arange(d) != j
+                        a_lin_l[others] = -(np.exp(diffs_u[m, j]) - np.exp(diffs_l[m, j])) / (diffs_u[m, j] - diffs_l[m, j]) / den_t**2
+                        a_lin_l[j] = -a_lin_l[others].sum()
+                        b_lin_l = ((diffs_u[m, j] * np.exp(diffs_l[m, j]) - diffs_l[m, j] * np.exp(diffs_u[m, j])) / (diffs_u[m, j] - diffs_l[m, j])).sum()
+                        b_lin_l = 1 / den_t * (2 - 1 / den_t * (1 + b_lin_l))
+                        bnd = p[m, j] >= a_lin_l @ z[m][L] + b_lin_l
+                    elif LBtype == 'ER' or j == jmax[m]:
                         # LSE2 bound same as ER bound when j = jmax
                         # Differences with z_j
                         others = np.arange(d) != j
@@ -222,7 +241,15 @@ if __name__ == '__main__':
                         # STILL NEED TO IMPLEMENT LSE1 BOUND
                 else:
                     # Incorrect class, need upper bound on probability
-                    if UBtype == 'ER':
+                    if UBtype == 'lin':
+                        # Linear ER bound
+                        a_lin_u = np.zeros(d)
+                        others = np.arange(d) != j
+                        a_lin_u[others] = -np.exp(diffs_t) / (den_l * den_u)
+                        a_lin_u[j] = -a_lin_u[others].sum()
+                        b_lin_u = 1 / den_l + 1 / den_u - (1 + np.dot(np.exp(diffs_t), 1 - diffs_t)) / (den_l * den_u)
+                        bnd = p[m, j] <= a_lin_u @ z[m][L] + b_lin_u
+                    elif UBtype == 'ER':
                         # CAN'T USE: HAVING MORE THAN 2 OF THESE BOUNDS PREVENTS CONVERGENCE 
                         #bnd = p[j] <= sm_l[j] + sm_u[j] - sm_l[j] * sm_u[j] * (1 + cvx.sum(cvx.exp(diffs[j])))
                         bnd = p[m, j] <= sm_l[m, j] + sm_u[m, j] - sm_l[m, j] * sm_u[m, j] * cvx.exp(cvx.log_sum_exp(z[m][L]) - z[m][L][j])
