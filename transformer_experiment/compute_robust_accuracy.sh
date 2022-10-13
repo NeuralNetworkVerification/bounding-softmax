@@ -6,7 +6,7 @@ do
     do
 	for t in lin0 linear er lse1 lse2 lse0.6 lse0.8
 	do
-	    numunsat=$(grep "$network" output.csv | grep "$e","$t",unsat | wc -l)
+	    numunsat=$(grep "$network" results.csv | grep "$e","$t",unsat | wc -l)
 	    echo "$network","$e","$t",$numunsat
 	done
     done
