@@ -3,12 +3,12 @@ import numpy as np
 import os
 import pickle
 
-for filename in os.listdir("./bounds_new/"):
+for filename in os.listdir("./bounds/"):
     if ".pickle" not in filename:
         lbs = []
         ubs = []
         print(filename)
-        with open(f'./bounds_new/{filename}', 'r') as in_file:
+        with open(f'./bounds/{filename}', 'r') as in_file:
             for line in in_file.readlines():
                 if "Layer 10:\n" == line:
                     break
