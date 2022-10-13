@@ -4,22 +4,22 @@
 [runlim] space limit:		8000 MB
 [runlim] argv[0]:		./run_experiment.sh
 [runlim] argv[1]:		big-pgd-sim.onnx
-[runlim] argv[2]:		192
-[runlim] argv[3]:		0.02
-[runlim] argv[4]:		lse2
-[runlim] start:			Thu Oct 13 02:56:31 2022
-[runlim] main pid:		1518
-2022-10-13 02:56:32.791118: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+[runlim] argv[2]:		56
+[runlim] argv[3]:		0.016
+[runlim] argv[4]:		lse0.6
+[runlim] start:			Thu Oct 13 03:59:36 2022
+[runlim] main pid:		30141
+2022-10-13 03:59:37.119161: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
 WARNING:tensorflow:From /barrett/scratch/haozewu/softmax/bounding-softmax/py37/lib/python3.7/site-packages/tensorflow/python/compat/v2_compat.py:107: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
 Instructions for updating:
 non-resource variables are not supported in the long term
-[runlim] sample:		13.5 time, 10.8 real, 440.8 MB
-[runlim] sample:		30.6 time, 20.8 real, 2056.4 MB
-[runlim] end:			Thu Oct 13 02:56:53 2022
+[runlim] sample:		12.4 time, 10.2 real, 408.2 MB
+[runlim] sample:		29.8 time, 20.2 real, 1259.3 MB
+[runlim] end:			Thu Oct 13 03:59:59 2022
 [runlim] status:		ok
 [runlim] result:		0
 [runlim] children:		304
-[runlim] real:			22.27 seconds
-[runlim] time:			31.28 seconds
-[runlim] space:			2435.6 MB
-[runlim] samples:		214
+[runlim] real:			23.18 seconds
+[runlim] time:			32.63 seconds
+[runlim] space:			2438.5 MB
+[runlim] samples:		229

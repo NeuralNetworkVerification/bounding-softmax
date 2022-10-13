@@ -2,7 +2,7 @@
 #SBATCH -e /dev/null
 #SBATCH -o /dev/null
 #SBATCH -c 2
-#SBATCH -a 1-25200
+#SBATCH -a 1-31500
 #SBATCH --qos=normal
 #SBATCH --partition=octa
 #SBATCH -t 00:00:1200
