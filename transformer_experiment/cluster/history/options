@@ -1,0 +1,7 @@
+time limit:      1200
+memory limit:    8000
+solver:          run_experiment.sh
+solver options:  
+runlim options:  --time-limit=1200 --space-limit=8000
+qos:             normal
+partition:       octa
