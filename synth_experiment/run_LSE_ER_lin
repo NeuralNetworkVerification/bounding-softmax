@@ -1,0 +1,5 @@
+#!/bin/sh
+
+for D in 2 3 4 5 6 8 11 16 23 32 45 64 91 128; do
+    python LSE_ER_lin_2022-10-03.py --d ${D} --seed ${D}
+done
