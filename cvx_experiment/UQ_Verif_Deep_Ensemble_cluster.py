@@ -14,9 +14,10 @@ import argparse
 parser = argparse.ArgumentParser(description='Example.')
 parser.add_argument('--eps', type=float, default=0.008, help="0.008 0.012 0.016")
 parser.add_argument('--index', type=int, default=0, help="< 100")
-parser.add_argument('--lb', type=str, default="ER", help="ER, or LSE")
-parser.add_argument('--ub', type=str, default="LSE", help="LSE")
+parser.add_argument('--lb', type=str, default="ER", help="lin or ER or LSE")
+parser.add_argument('--ub', type=str, default="LSE", help="lin or LSE")
 parser.add_argument('--scoring', type=str, default="NLL", help="NLL or Brier")
+parser.add_argument('--network', type=str, default="mnist", help="mnist or mnist-large or robust_mnist-large")
 args = parser.parse_args()
 
 
@@ -25,16 +26,27 @@ if __name__ == '__main__':
     # Perturbation radius
     eps = args.eps #0.008
     # Softmax bound types
-    LBtype = args.lb #'ER'  # 'ER' or 'LSE' currently
-    UBtype = args.ub #'LSE'  # 'ER' DOESN'T WORK
+    LBtype = args.lb #'ER'  # 'lin' or 'ER' or 'LSE' currently
+    UBtype = args.ub #'LSE'  # 'lin' or 'LSE' currently, 'ER' DOESN'T WORK
     # Scoring function
     scoring = args.scoring #'NLL'     # 'NLL' or 'Brier'
+    # Network
+    network = args.network
+    if network == 'mnist':
+        suffix = ''
+    elif network == 'mnist-large':
+        suffix = 'large-'
+    elif network == 'robust_mnist-large':
+        suffix = 'robust-large-'
 
     # ENSEMBLE DIMENSIONS
     # Number of models in ensemble
     M = 5
     # Number of hidden layers
-    L = 2
+    if network == 'mnist':
+        L = 2
+    elif network in ['mnist-large', 'robust_mnist-large']:
+        L = 3
     # Number of classes
     d = 10
     
@@ -43,7 +55,7 @@ if __name__ == '__main__':
     b = []
     # Iterate over models
     for m in range(M):
-        W = np.load(f'networks/mnist-{m}.npz')
+        W = np.load(f'networks/{network}-{m}.npz')
     
         # Put weights into list of arrays
         w.append([None] * (L + 1))
@@ -71,7 +83,7 @@ if __name__ == '__main__':
         ubs = []
         # Iterate over models
         for m in range(M):
-            with open(f"./bounds/bounds_net{m}_ind{i}_eps{eps}.pickle", 'rb') as fp:
+            with open(f"./bounds/bounds_net{suffix}{m}_ind{i}_eps{eps}.pickle", 'rb') as fp:
                 bounds = pickle.load(fp)
             lbs.append(bounds["lbs"])
             ubs.append(bounds["ubs"])
@@ -290,5 +302,5 @@ if __name__ == '__main__':
         probs = p.value
         
     data = [obj, logits, probs]
-    with open(f'results/ind{i}_eps{eps}_lb{LBtype}_ub{UBtype}_score{scoring}_results.pickle', 'wb') as f:
+    with open(f'results/{network}_ind{i}_eps{eps}_lb{LBtype}_ub{UBtype}_score{scoring}_results.pickle', 'wb') as f:
         pickle.dump(data, f)
