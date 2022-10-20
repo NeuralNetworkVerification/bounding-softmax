@@ -237,9 +237,6 @@ if __name__ == '__main__':
                         b_lin_l = ((diffs_u[m, j] * np.exp(diffs_l[m, j]) - diffs_l[m, j] * np.exp(diffs_u[m, j])) / (diffs_u[m, j] - diffs_l[m, j])).sum()
                         b_lin_l = 1 / den_t * (2 - 1 / den_t * (1 + b_lin_l))
                         bnd = p[m, j] >= a_lin_l @ z[m][L] + b_lin_l
-                        # Add constant bound
-                        bnd2 = p[m, j] >= sm_l[m, j]
-                        cons.append(bnd2)
                     elif LBtype == 'ER' or j == jmax[m]:
                         # LSE2 bound same as ER bound when j = jmax
                         # Differences with z_j
@@ -254,6 +251,8 @@ if __name__ == '__main__':
                         diffs[m] = z[m][L] - z[m][L][jmax[m]]
                         bnd = cvx.log(p[m, j]) >= diffs[m][j] - cvx.log(1 + cvx.sum((cvx.multiply(np.exp(diffs_l[m, jmax[m]]), diffs_u[m, jmax[m]] - diffs[m][others]) + cvx.multiply(np.exp(diffs_u[m, jmax[m]]), diffs[m][others] - diffs_l[m, jmax[m]])) / (diffs_u[m, jmax[m]] - diffs_l[m, jmax[m]])))
                         # STILL NEED TO IMPLEMENT LSE1 BOUND
+                    # Add constant bound
+                    bnd2 = p[m, j] >= sm_l[m, j]
                 else:
                     # Incorrect class, need upper bound on probability
                     if UBtype == 'lin':
@@ -264,15 +263,15 @@ if __name__ == '__main__':
                         a_lin_u[j] = -a_lin_u[others].sum()
                         b_lin_u = 1 / den_l + 1 / den_u - (1 + np.dot(np.exp(diffs_t), 1 - diffs_t)) / (den_l * den_u)
                         bnd = p[m, j] <= a_lin_u @ z[m][L] + b_lin_u
-                        # Add constant bound
-                        bnd2 = p[m, j] <= sm_u[m, j]
-                        cons.append(bnd2)
                     elif UBtype == 'ER':
                         # CAN'T USE: HAVING MORE THAN 2 OF THESE BOUNDS PREVENTS CONVERGENCE 
                         #bnd = p[j] <= sm_l[j] + sm_u[j] - sm_l[j] * sm_u[j] * (1 + cvx.sum(cvx.exp(diffs[j])))
                         bnd = p[m, j] <= sm_l[m, j] + sm_u[m, j] - sm_l[m, j] * sm_u[m, j] * cvx.exp(cvx.log_sum_exp(z[m][L]) - z[m][L][j])
                     elif UBtype == 'LSE':
                         bnd = p[m, j] <= (lsm_u[m, j] * sm_l[m, j] - lsm_l[m, j] * sm_u[m, j] - (sm_u[m, j] - sm_l[m, j]) * (cvx.log_sum_exp(z[m][L]) - z[m][L][j])) / (lsm_u[m, j] - lsm_l[m, j])
+                    # Add constant bound
+                    bnd2 = p[m, j] <= sm_u[m, j]
+                cons.append(bnd2)
                 cons.append(bnd)
         
             # Sum to 1 constraint
