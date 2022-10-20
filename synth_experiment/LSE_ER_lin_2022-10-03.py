@@ -17,6 +17,7 @@ from scipy.special import expit, logsumexp, softmax
 import cvxpy as cvx
 from tqdm import tqdm
 from pathlib import Path
+import os
 import pickle
 
 def eval_ER_u(X, sm_l, sm_u):
@@ -139,8 +140,8 @@ if __name__ == '__main__':
     N = 1000
     
     # Initialize results arrays
-    lbs = ['sm_l', 'ER_l', 'LSE_l', 'hybrid_l', 'hybrid2_l', 'hybrid3_l', 'lin_l']
-    ubs = ['sm_u', 'ER_u', 'LSE_u', 'lin_u']
+    lbs = ['sm_l', 'ER_l', 'LSE_l', 'hybrid_l', 'hybrid2_l', 'hybrid3_l', 'lin_l', 'ERl_l', 'hybridl_l', 'hybrid2l_l']
+    ubs = ['sm_u', 'ER_u', 'LSE_u', 'lin_u', 'ERl_u', 'LSEl_u']
     pairs = list(product(['ER_l', 'LSE_l', 'hybrid_l', 'hybrid2_l', 'hybrid3_l'], ['ER_u', 'LSE_u'])) + [('lin_l', 'lin_u')]
 
 #    sm_u_sm_l = np.zeros((R, num_eps))
@@ -157,14 +158,19 @@ if __name__ == '__main__':
     
     mean_sm_l = np.zeros((R, 2, num_alphaMax, num_eps))
     mean_ER_l = np.zeros((R, 2, num_alphaMax, num_eps))
+    mean_ERl_l = np.zeros((R, 2, num_alphaMax, num_eps))
     mean_LSE_l = np.zeros((R, 2, num_alphaMax, num_eps))
     mean_hybrid_l = np.zeros((R, 2, num_alphaMax, num_eps))
+    mean_hybridl_l = np.zeros((R, 2, num_alphaMax, num_eps))
     mean_hybrid2_l = np.zeros((R, 2, num_alphaMax, num_eps))
+    mean_hybrid2l_l = np.zeros((R, 2, num_alphaMax, num_eps))
     mean_hybrid3_l = np.zeros((R, 2, num_alphaMax, num_eps))
     mean_lin_l = np.zeros((R, 2, num_alphaMax, num_eps))
     mean_sm_u = np.zeros((R, 2, num_alphaMax, num_eps))
     mean_ER_u = np.zeros((R, 2, num_alphaMax, num_eps))
+    mean_ERl_u = np.zeros((R, 2, num_alphaMax, num_eps))
     mean_LSE_u = np.zeros((R, 2, num_alphaMax, num_eps))
+    mean_LSEl_u = np.zeros((R, 2, num_alphaMax, num_eps))
     mean_lin_u = np.zeros((R, 2, num_alphaMax, num_eps))
 
 #    mean_ER_u_ER_l = np.zeros((R, num_eps))
@@ -298,6 +304,64 @@ if __name__ == '__main__':
 #                    max_lin_u_lin_l[r, ee] = np.dot(a_lin_ul[a_lin_ul > 0], u[a_lin_ul > 0]) + np.dot(a_lin_ul[a_lin_ul < 0], l[a_lin_ul < 0])
 #                    max_lin_u_lin_l[r, ee] += b_lin_u - b_lin_l
                     
+                    # LINEARIZED BOUNDS
+                    # Always linearize around mid
+                    diffs_mid = mid[1:] - mid[0]
+                    
+                    # ER upper bound
+                    a_ER_u = np.zeros(d)
+                    a_ER_u[1:] = -sm_l * sm_u * np.exp(diffs_mid)
+                    a_ER_u[0] = -a_ER_u[1:].sum()
+                    b_ER_u = eval_ER_u(mid[np.newaxis,:], sm_l, sm_u) - np.dot(mid, a_ER_u)
+                    
+                    # LSE upper bound
+                    a_LSE_u = np.zeros(d)
+                    a_LSE_u[1:] = -(sm_u - sm_l) / (lsm_u - lsm_l) * softmax(mid)[1:]
+                    a_LSE_u[0] = -a_LSE_u[1:].sum()
+                    b_LSE_u = eval_LSE_u(mid[np.newaxis,:], sm_l, sm_u, lsm_l, lsm_u) - np.dot(mid, a_LSE_u)
+
+                    # ER lower bound
+                    a_ER_l = np.zeros(d)
+                    ER_l_mid = eval_ER_l(mid[np.newaxis,:], diffs_l, diffs_u)
+                    a_ER_l[1:] = - ER_l_mid**2 * (np.exp(diffs_u) - np.exp(diffs_l)) / (diffs_u - diffs_l)
+                    a_ER_l[0] = -a_ER_l[1:].sum()
+                    b_ER_l = ER_l_mid - np.dot(mid, a_ER_l)
+                    
+                    # Hybrid lower bound
+                    # First compute linear upper bound on sum of exponentials
+                    a_hybrid_l = (np.exp(u) - np.exp(l)) / (u - l)
+                    b_hybrid_l = ((u * np.exp(l) - l * np.exp(u)) / (u - l)).sum()
+                    se_u_mid = np.dot(mid, a_hybrid_l) + b_hybrid_l
+                    hybrid_l_mid = eval_hybrid_l(mid[np.newaxis,:], l, u)
+                    # Coefficients of linearized bound
+                    a_hybrid_l *= -hybrid_l_mid / se_u_mid
+                    a_hybrid_l[0] += hybrid_l_mid
+                    b_hybrid_l = hybrid_l_mid - np.dot(mid, a_hybrid_l)
+                    
+                    # Hybrid2 lower bound
+                    # Component with largest midpoint
+                    jmax = (l + u).argmax()
+                    if jmax == 0:
+                        a_hybrid2_l = a_ER_l
+                        b_hybrid2_l = b_ER_l
+                    else:
+                        # Differences w.r.t. largest component and bounds on differences
+                        others = np.arange(d) != jmax
+                        diffsMax_mid = mid - mid[jmax]
+                        diffsMax_l = l[others] - u[jmax]
+                        diffsMax_u = u[others] - l[jmax]
+                        # Linear upper bound on sum of exponentials
+                        a_hybrid2_l = np.zeros(d)
+                        a_hybrid2_l[others] = (np.exp(diffsMax_u) - np.exp(diffsMax_l)) / (diffsMax_u - diffsMax_l)
+                        b_hybrid2_l = ((diffsMax_u * np.exp(diffsMax_l) - diffsMax_l * np.exp(diffsMax_u)) / (diffsMax_u - diffsMax_l)).sum()
+                        se_u2_mid = 1 + np.dot(diffsMax_mid[others], a_hybrid2_l[others]) + b_hybrid2_l
+                        hybrid2_l_mid = eval_hybrid2_l(mid[np.newaxis,:], l, u)
+                        # Coefficients of linearized bound
+                        a_hybrid2_l *= -hybrid2_l_mid / se_u2_mid
+                        a_hybrid2_l[0] += hybrid2_l_mid
+                        a_hybrid2_l[jmax] = -a_hybrid2_l[others].sum()
+                        b_hybrid2_l = hybrid2_l_mid - np.dot(mid, a_hybrid2_l)
+
                     # MEAN GAPS
                     
                     # Sample points uniformly from input region
@@ -314,6 +378,11 @@ if __name__ == '__main__':
                     hybrid3_l = eval_hybrid3_l(X, l, u)
                     lin_u = np.dot(X, a_lin_u) + b_lin_u
                     lin_l = np.dot(X, a_lin_l) + b_lin_l
+                    ERl_u = np.dot(X, a_ER_u) + b_ER_u
+                    LSEl_u = np.dot(X, a_LSE_u) + b_LSE_u
+                    ERl_l = np.dot(X, a_ER_l) + b_ER_l
+                    hybridl_l = np.dot(X, a_hybrid_l) + b_hybrid_l
+                    hybrid2l_l = np.dot(X, a_hybrid2_l) + b_hybrid2_l
                     
                     # Compute mean gaps
                     for lb in lbs:
@@ -340,5 +409,5 @@ if __name__ == '__main__':
         dictSave['mean_' + b] = eval('mean_' + b)
     # Save results to file
     filename = Path(__file__).stem + f'_d{d}'
-    with open(filename + '.pkl', 'wb') as f:
+    with open(os.path.join('results', filename + '.pkl'), 'wb') as f:
         pickle.dump(dictSave, f)

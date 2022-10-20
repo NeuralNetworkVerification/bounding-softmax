@@ -14,9 +14,10 @@ import argparse
 parser = argparse.ArgumentParser(description='Example.')
 parser.add_argument('--eps', type=float, default=0.008, help="0.008 0.012 0.016")
 parser.add_argument('--index', type=int, default=0, help="< 100")
-parser.add_argument('--lb', type=str, default="ER", help="ER, or LSE")
-parser.add_argument('--ub', type=str, default="LSE", help="LSE")
+parser.add_argument('--lb', type=str, default="ER", help="lin or ER or LSE")
+parser.add_argument('--ub', type=str, default="LSE", help="lin or LSE")
 parser.add_argument('--scoring', type=str, default="NLL", help="NLL or Brier")
+parser.add_argument('--network', type=str, default="mnist", help="mnist or mnist-large or robust_mnist-large")
 args = parser.parse_args()
 
 
@@ -25,16 +26,27 @@ if __name__ == '__main__':
     # Perturbation radius
     eps = args.eps #0.008
     # Softmax bound types
-    LBtype = args.lb #'ER'  # 'ER' or 'LSE' currently
-    UBtype = args.ub #'LSE'  # 'ER' DOESN'T WORK
+    LBtype = args.lb #'ER'  # 'lin' or 'ER' or 'LSE' currently
+    UBtype = args.ub #'LSE'  # 'lin' or 'LSE' currently, 'ER' DOESN'T WORK
     # Scoring function
     scoring = args.scoring #'NLL'     # 'NLL' or 'Brier'
+    # Network
+    network = args.network
+    if network == 'mnist':
+        suffix = ''
+    elif network == 'mnist-large':
+        suffix = 'large-'
+    elif network == 'robust_mnist-large':
+        suffix = 'robust-large-'
 
     # ENSEMBLE DIMENSIONS
     # Number of models in ensemble
     M = 5
     # Number of hidden layers
-    L = 2
+    if network == 'mnist':
+        L = 2
+    elif network in ['mnist-large', 'robust_mnist-large']:
+        L = 3
     # Number of classes
     d = 10
     
@@ -43,7 +55,7 @@ if __name__ == '__main__':
     b = []
     # Iterate over models
     for m in range(M):
-        W = np.load(f'networks/mnist-{m}.npz')
+        W = np.load(f'networks/{network}-{m}.npz')
     
         # Put weights into list of arrays
         w.append([None] * (L + 1))
@@ -71,7 +83,7 @@ if __name__ == '__main__':
         ubs = []
         # Iterate over models
         for m in range(M):
-            with open(f"./bounds/bounds_net{m}_ind{i}_eps{eps}.pickle", 'rb') as fp:
+            with open(f"./bounds/bounds_net{suffix}{m}_ind{i}_eps{eps}.pickle", 'rb') as fp:
                 bounds = pickle.load(fp)
             lbs.append(bounds["lbs"])
             ubs.append(bounds["ubs"])
@@ -225,9 +237,6 @@ if __name__ == '__main__':
                         b_lin_l = ((diffs_u[m, j] * np.exp(diffs_l[m, j]) - diffs_l[m, j] * np.exp(diffs_u[m, j])) / (diffs_u[m, j] - diffs_l[m, j])).sum()
                         b_lin_l = 1 / den_t * (2 - 1 / den_t * (1 + b_lin_l))
                         bnd = p[m, j] >= a_lin_l @ z[m][L] + b_lin_l
-                        # Add constant bound
-                        bnd2 = p[m, j] >= sm_l[m, j]
-                        cons.append(bnd2)
                     elif LBtype == 'ER' or j == jmax[m]:
                         # LSE2 bound same as ER bound when j = jmax
                         # Differences with z_j
@@ -242,6 +251,8 @@ if __name__ == '__main__':
                         diffs[m] = z[m][L] - z[m][L][jmax[m]]
                         bnd = cvx.log(p[m, j]) >= diffs[m][j] - cvx.log(1 + cvx.sum((cvx.multiply(np.exp(diffs_l[m, jmax[m]]), diffs_u[m, jmax[m]] - diffs[m][others]) + cvx.multiply(np.exp(diffs_u[m, jmax[m]]), diffs[m][others] - diffs_l[m, jmax[m]])) / (diffs_u[m, jmax[m]] - diffs_l[m, jmax[m]])))
                         # STILL NEED TO IMPLEMENT LSE1 BOUND
+                    # Add constant bound
+                    bnd2 = p[m, j] >= sm_l[m, j]
                 else:
                     # Incorrect class, need upper bound on probability
                     if UBtype == 'lin':
@@ -252,15 +263,15 @@ if __name__ == '__main__':
                         a_lin_u[j] = -a_lin_u[others].sum()
                         b_lin_u = 1 / den_l + 1 / den_u - (1 + np.dot(np.exp(diffs_t), 1 - diffs_t)) / (den_l * den_u)
                         bnd = p[m, j] <= a_lin_u @ z[m][L] + b_lin_u
-                        # Add constant bound
-                        bnd2 = p[m, j] <= sm_u[m, j]
-                        cons.append(bnd2)
                     elif UBtype == 'ER':
                         # CAN'T USE: HAVING MORE THAN 2 OF THESE BOUNDS PREVENTS CONVERGENCE 
                         #bnd = p[j] <= sm_l[j] + sm_u[j] - sm_l[j] * sm_u[j] * (1 + cvx.sum(cvx.exp(diffs[j])))
                         bnd = p[m, j] <= sm_l[m, j] + sm_u[m, j] - sm_l[m, j] * sm_u[m, j] * cvx.exp(cvx.log_sum_exp(z[m][L]) - z[m][L][j])
                     elif UBtype == 'LSE':
                         bnd = p[m, j] <= (lsm_u[m, j] * sm_l[m, j] - lsm_l[m, j] * sm_u[m, j] - (sm_u[m, j] - sm_l[m, j]) * (cvx.log_sum_exp(z[m][L]) - z[m][L][j])) / (lsm_u[m, j] - lsm_l[m, j])
+                    # Add constant bound
+                    bnd2 = p[m, j] <= sm_u[m, j]
+                cons.append(bnd2)
                 cons.append(bnd)
         
             # Sum to 1 constraint
@@ -279,7 +290,11 @@ if __name__ == '__main__':
         # SOLVE PROBLEM
         
         prob = cvx.Problem(cvx.Maximize(score_ub), cons)
-        prob.solve(solver='SCS', verbose=True, acceleration_lookback=0, max_iters=int(1e4))
+        if network == 'mnist-large':
+            prob.solve(solver='SCS', verbose=True, acceleration_lookback=0, max_iters=int(1e5))
+        else:
+            prob.solve(solver='SCS', verbose=True, acceleration_lookback=0, max_iters=int(1e4))
+
         print(f'Status: {prob.status}')
         print(f'Objective value = {prob.value}')
         
@@ -290,5 +305,5 @@ if __name__ == '__main__':
         probs = p.value
         
     data = [obj, logits, probs]
-    with open(f'results/ind{i}_eps{eps}_lb{LBtype}_ub{UBtype}_score{scoring}_results.pickle', 'wb') as f:
+    with open(f'results/{network}_ind{i}_eps{eps}_lb{LBtype}_ub{UBtype}_score{scoring}_results.pickle', 'wb') as f:
         pickle.dump(data, f)
