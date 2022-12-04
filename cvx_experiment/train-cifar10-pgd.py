@@ -35,7 +35,6 @@ import sys
 
 netId = sys.argv[1]
 
-"""
 # Configure a logger to capture ART outputs; these are printed in console and the level of detail is set to INFO
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -98,7 +97,6 @@ logger.info("Accuracy on adversarial samples: %.2f%%", (acc * 100))
 
 model.save(f'robust_cifar10-large-{netId}.h5')
 
-"""
 model = keras.models.load_model(f'robust_cifar10-large-{netId}.h5')
 
 import keras2onnx
