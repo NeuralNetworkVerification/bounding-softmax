@@ -8,6 +8,7 @@ import pickle
 import numpy as np
 from scipy.special import expit, logsumexp, softmax
 from tensorflow.keras.datasets import mnist
+from tensorflow.keras.datasets import cifar10
 import cvxpy as cvx
 import argparse
 
@@ -17,7 +18,7 @@ parser.add_argument('--index', type=int, default=0, help="< 100")
 parser.add_argument('--lb', type=str, default="ER", help="lin or ER or LSE")
 parser.add_argument('--ub', type=str, default="LSE", help="lin or LSE")
 parser.add_argument('--scoring', type=str, default="NLL", help="NLL or Brier")
-parser.add_argument('--network', type=str, default="mnist", help="mnist or mnist-large or robust_mnist-large")
+parser.add_argument('--network', type=str, default="mnist", help="mnist or mnist-large or robust_mnist-large or cifar10-large or robust_cifar10-large")
 args = parser.parse_args()
 
 
@@ -38,6 +39,10 @@ if __name__ == '__main__':
         suffix = 'large-'
     elif network == 'robust_mnist-large':
         suffix = 'robust-large-'
+    elif network == 'cifar10-large':
+        suffix = 'cifar10-large-'
+    elif network == 'robust_cifar10-large':
+        suffix = 'robust_cifar10-large-'
 
     # ENSEMBLE DIMENSIONS
     # Number of models in ensemble
@@ -45,7 +50,7 @@ if __name__ == '__main__':
     # Number of hidden layers
     if network == 'mnist':
         L = 2
-    elif network in ['mnist-large', 'robust_mnist-large']:
+    elif network in ['mnist-large', 'robust_mnist-large', 'cifar10-large', 'robust_cifar10-large']:
         L = 3
     # Number of classes
     d = 10
@@ -56,7 +61,6 @@ if __name__ == '__main__':
     # Iterate over models
     for m in range(M):
         W = np.load(f'networks/{network}-{m}.npz')
-    
         # Put weights into list of arrays
         w.append([None] * (L + 1))
         b.append([None] * (L + 1))
@@ -65,7 +69,10 @@ if __name__ == '__main__':
             b[m][ll] = W['b' + str(ll + 1)]
 
     # LOAD MNIST TEST IMAGES AND BOUNDS
-    (X, y), (Xt, yt) = mnist.load_data()
+    if "mnist" in network:
+        (X, y), (Xt, yt) = mnist.load_data()
+    elif "cifar10" in network:
+        (X, y), (Xt, yt) = cifar10.load_data()
     # Number of test images to use
     N = [args.index]
     
@@ -89,7 +96,6 @@ if __name__ == '__main__':
             ubs.append(bounds["ubs"])
         
         # INPUT LAYER
-        
         mid0 = Xt[i].flatten() / 255
         # Input variables
         D = len(mid0)

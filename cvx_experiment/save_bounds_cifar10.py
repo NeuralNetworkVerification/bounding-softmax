@@ -3,8 +3,8 @@ import numpy as np
 import os
 import pickle
 
-for filename in os.listdir("./bounds_cifar10/"):
-    if "robust" in filename and ".pickle" not in filename:
+for filename in os.listdir("./bounds/"):
+    if "cifar10" in filename and ".pickle" not in filename:
         lbs = []
         ubs = []
         print(filename)
@@ -22,7 +22,6 @@ for filename in os.listdir("./bounds_cifar10/"):
                     ub = float(l[4])
                     lbs[-1].append(lb)
                     ubs[-1].append(ub)
-        print(filename)
         while lbs[0] == []:
             lbs = lbs[1:]
 
