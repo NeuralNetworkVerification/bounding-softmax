@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Trains a convolutional neural network on the CIFAR-10 dataset, then generated adversarial images using the
-DeepFool attack and retrains the network on the training set augmented with the adversarial images.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
@@ -20,11 +16,26 @@ from art.attacks.evasion import DeepFool
 from art.attacks.evasion import ProjectedGradientDescent
 from art.estimators.classification import KerasClassifier
 from art.utils import load_dataset
+"""
+
+import numpy as np
+
+import tensorflow as tf
+from tensorflow import keras
+# from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.optimizers import Adam
+tf.compat.v1.disable_eager_execution() #  Disable Eager Execution
+
+# ART
+from art.attacks.evasion import ProjectedGradientDescent
+from art.estimators.classification import KerasClassifier
+
 
 import sys
 
 netId = sys.argv[1]
 
+"""
 # Configure a logger to capture ART outputs; these are printed in console and the level of detail is set to INFO
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -87,7 +98,8 @@ logger.info("Accuracy on adversarial samples: %.2f%%", (acc * 100))
 
 model.save(f'robust_cifar10-large-{netId}.h5')
 
-model = tf.keras.models.load_model(f'robust_cifar10-large-{netId}.h5')
+"""
+model = keras.models.load_model(f'robust_cifar10-large-{netId}.h5')
 
 import keras2onnx
 onnx_model = keras2onnx.convert_keras(model, f'robust_cifar10-large-{netId}')
