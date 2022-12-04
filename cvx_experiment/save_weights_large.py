@@ -10,14 +10,14 @@ print(len(weights))
 
 
 
-w1 = nh.to_array(weights[6])
-b1 = nh.to_array(weights[7])
+w1 = nh.to_array(weights[9])
+b1 = nh.to_array(weights[10])
 
-w2 = nh.to_array(weights[4])
-b2 = nh.to_array(weights[5])
+w2 = nh.to_array(weights[6])
+b2 = nh.to_array(weights[7])
 
-w3 = nh.to_array(weights[2])
-b3 = nh.to_array(weights[3])
+w3 = nh.to_array(weights[3])
+b3 = nh.to_array(weights[4])
 
 w4 = nh.to_array(weights[0])
 b4 = nh.to_array(weights[1])
