@@ -6,13 +6,16 @@ from tensorflow.keras.datasets import mnist
 
 EPS = [0.008, 0.012, 0.016]
 LB = ['lin', 'ER', 'LSE']
-SCORE = sys.argv[1]
+NETWORK = sys.argv[1]
+SCORE = sys.argv[2]
 
 objs = np.zeros((100, len(LB), len(EPS)))
 logitss = []
 probss = []
 
 for filename in os.listdir("results"):
+    if filename[:len(NETWORK)] != NETWORK:
+        continue
     ind, eps, lb, ub, score, _ = filename.split("_")
     ind = int(ind[3:])
     eps = float(eps[3:])
