@@ -1,4 +1,3 @@
-"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import logging
@@ -16,20 +15,6 @@ from art.attacks.evasion import DeepFool
 from art.attacks.evasion import ProjectedGradientDescent
 from art.estimators.classification import KerasClassifier
 from art.utils import load_dataset
-"""
-
-import numpy as np
-
-import tensorflow as tf
-from tensorflow import keras
-# from tensorflow.keras.optimizers import SGD
-from tensorflow.keras.optimizers import Adam
-tf.compat.v1.disable_eager_execution() #  Disable Eager Execution
-
-# ART
-from art.attacks.evasion import ProjectedGradientDescent
-from art.estimators.classification import KerasClassifier
-
 
 import sys
 
@@ -65,11 +50,12 @@ model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accur
 
 # Create classifier wrapper
 classifier = KerasClassifier(model=model, clip_values=(min_, max_))
-classifier.fit(x_train, y_train, nb_epochs=20, batch_size=128)
+classifier.fit(x_train, y_train, nb_epochs=5, batch_size=128)
 
 # Craft adversarial samples with DeepFool
 logger.info("Create DeepFool attack")
-adv_crafter = DeepFool(classifier)
+#adv_crafter = DeepFool(classifier)
+adv_crafter = ProjectedGradientDescent(classifier, eps=0.1, eps_step=0.005, max_iter=40, batch_size=50)
 logger.info("Craft attack on training examples")
 x_train_adv = adv_crafter.generate(x_train)
 logger.info("Craft attack test examples")
