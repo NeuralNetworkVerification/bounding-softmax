@@ -38,11 +38,11 @@ im_shape = x_train[0].shape
 # Source here: https://github.com/keras-team/keras/blob/master/examples/cifar10_cnn.py
 model = keras.models.Sequential([
     keras.layers.Flatten(input_shape=[32,32,3]), # Layer to flat an input
-    keras.layers.Dense(100), # Hidden 1
+    keras.layers.Dense(40), # Hidden 1
     keras.layers.ReLU(),
-    keras.layers.Dense(100), # Hidden 1
+    keras.layers.Dense(40), # Hidden 1
     keras.layers.ReLU(),
-    keras.layers.Dense(100), # Hidden 1
+    keras.layers.Dense(40), # Hidden 1
     keras.layers.ReLU(),
     keras.layers.Dense(10, activation='softmax')]) # Output layer
 
@@ -50,12 +50,12 @@ model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accur
 
 # Create classifier wrapper
 classifier = KerasClassifier(model=model, clip_values=(min_, max_))
-classifier.fit(x_train, y_train, nb_epochs=5, batch_size=128)
+classifier.fit(x_train, y_train, nb_epochs=30, batch_size=128)
 
 # Craft adversarial samples with DeepFool
 logger.info("Create DeepFool attack")
-#adv_crafter = DeepFool(classifier)
-adv_crafter = ProjectedGradientDescent(classifier, eps=0.1, eps_step=0.005, max_iter=40, batch_size=50)
+adv_crafter = DeepFool(classifier)
+#adv_crafter = ProjectedGradientDescent(classifier, eps=0.1, eps_step=0.005, max_iter=40, batch_size=50)
 logger.info("Craft attack on training examples")
 x_train_adv = adv_crafter.generate(x_train)
 logger.info("Craft attack test examples")
@@ -73,7 +73,7 @@ y_train = np.append(y_train, y_train, axis=0)
 
 # Retrain the CNN on the extended dataset
 model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
-classifier.fit(x_train, y_train, nb_epochs=30, batch_size=128)
+classifier.fit(x_train, y_train, nb_epochs=20, batch_size=128)
 
 # Evaluate the adversarially trained classifier on the test set
 preds = np.argmax(classifier.predict(x_test_adv), axis=1)
@@ -81,10 +81,10 @@ acc = np.sum(preds == np.argmax(y_test, axis=1)) / y_test.shape[0]
 logger.info("Classifier with adversarial training")
 logger.info("Accuracy on adversarial samples: %.2f%%", (acc * 100))
 
-model.save(f'robust_cifar10-large-{netId}.h5')
+model.save(f'robust_cifar10-{netId}.h5')
 
-model = keras.models.load_model(f'robust_cifar10-large-{netId}.h5')
+model = keras.models.load_model(f'robust_cifar10-{netId}.h5')
 
 import keras2onnx
-onnx_model = keras2onnx.convert_keras(model, f'robust_cifar10-large-{netId}')
-keras2onnx.save_model(onnx_model, f'robust_cifar10-large-{netId}.onnx')
+onnx_model = keras2onnx.convert_keras(model, f'robust_cifar10-{netId}')
+keras2onnx.save_model(onnx_model, f'robust_cifar10-{netId}.onnx')
