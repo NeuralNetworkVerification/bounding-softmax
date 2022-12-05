@@ -38,11 +38,11 @@ im_shape = x_train[0].shape
 # Source here: https://github.com/keras-team/keras/blob/master/examples/cifar10_cnn.py
 model = keras.models.Sequential([
     keras.layers.Flatten(input_shape=[32,32,3]), # Layer to flat an input
-    keras.layers.Dense(40), # Hidden 1
+    keras.layers.Dense(20), # Hidden 1
     keras.layers.ReLU(),
-    keras.layers.Dense(40), # Hidden 1
+    keras.layers.Dense(20), # Hidden 1
     keras.layers.ReLU(),
-    keras.layers.Dense(40), # Hidden 1
+    keras.layers.Dense(20), # Hidden 1
     keras.layers.ReLU(),
     keras.layers.Dense(10, activation='softmax')]) # Output layer
 
