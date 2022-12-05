@@ -39,8 +39,8 @@ if __name__ == '__main__':
         suffix = 'large-'
     elif network == 'robust_mnist-large':
         suffix = 'robust-large-'
-    elif network == 'cifar10-large':
-        suffix = 'cifar10-large-'
+    elif network == 'robust_cifar10':
+        suffix = 'robust_cifar10-'
     elif network == 'robust_cifar10-large':
         suffix = 'robust_cifar10-large-'
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # Number of hidden layers
     if network == 'mnist':
         L = 2
-    elif network in ['mnist-large', 'robust_mnist-large', 'cifar10-large', 'robust_cifar10-large']:
+    elif network in ['mnist-large', 'robust_mnist-large', 'robust_cifar10', 'robust_cifar10-large']:
         L = 3
     # Number of classes
     d = 10
@@ -175,7 +175,11 @@ if __name__ == '__main__':
         # Iterate over models
         jmax = np.empty(M, dtype=int)
         for m in range(M):
-            z[m][L] = xa[m][L-1] @ w[m][L][active[m][L-1], :] + xu[m][L-1] @ w[m][L][unstable[m][L-1], :] + b[m][L]
+            nUnstable = unstable[m][L-1].sum()
+            if nUnstable == unstable[m][L-1].shape[0]:
+                z[m][L] = xu[m][L-1] @ w[m][L][unstable[m][L-1], :] + b[m][L]
+            else:
+                z[m][L] = xa[m][L-1] @ w[m][L][active[m][L-1], :] + xu[m][L-1] @ w[m][L][unstable[m][L-1], :] + b[m][L]
             # Bounds on logits
             # NEEDS TO BE MODEL-SPECIFIC FOR DEEP ENSEMBLE
             l[m][L] = np.array(lbs[m][2*L+1])

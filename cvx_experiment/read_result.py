@@ -3,20 +3,28 @@ import sys
 import os
 import numpy as np
 from tensorflow.keras.datasets import mnist
+from tensorflow.keras.datasets import cifar10
 
-EPS = [0.008, 0.012, 0.016, 0.02, 0.024]
+EPS = [0.008, 0.012, 0.016]#, 0.02, 0.024]
 LB = ['lin', 'ER', 'LSE']
-NETWORK = sys.argv[1]
-SCORE = sys.argv[2]
+SCORE = sys.argv[1]
+NETWORK = sys.argv[2]
 
 objs = np.zeros((100, len(LB), len(EPS)))
 logitss = []
 probss = []
 
 for filename in os.listdir("results"):
-    if filename[:len(NETWORK)] != NETWORK:
-        continue
-    ind, eps, lb, ub, score, _ = filename.split("_")
+    filenameSplit = filename.split("_")
+    if len(filenameSplit) == 6:
+        network = 'mnist'
+    elif len(filenameSplit) == 7:
+        network = filenameSplit[0]
+        filenameSplit = filenameSplit[1:]
+    elif len(filenameSplit) == 8:
+        network = filenameSplit[0] + '_' + filenameSplit[1]
+        filenameSplit = filenameSplit[2:]
+    ind, eps, lb, ub, score, _ = filenameSplit
     ind = int(ind[3:])
     eps = float(eps[3:])
     lb = lb[2:]
@@ -31,6 +39,8 @@ for filename in os.listdir("results"):
                 objs[ind, b, e] = obj
                 logitss.append(logits)
                 probss.append(probs)
+
+print(-np.log(-objs))
 
 if SCORE == 'NLL':
     # Negative log of (lower bound on) probability
@@ -49,10 +59,15 @@ if SCORE == 'NLL':
         suffix = 'large-'
     elif NETWORK == 'robust_mnist-large':
         suffix = 'robust-large-'
+    elif NETWORK == 'robust_cifar10':
+        suffix = 'robust_cifar10-'
 
     # Load true labels for test set
-    (X, y), (Xt, yt) = mnist.load_data()
-    
+    if "mnist"  in NETWORK:
+        (X, y), (Xt, yt) = mnist.load_data()
+    elif "cifar10" in NETWORK:
+        (X, y), (Xt, yt) = cifar10.load_data()
+
     M = 5
     pStarLB = np.empty((100, M, len(EPS)))
     # Iterate over test images
@@ -66,7 +81,7 @@ if SCORE == 'NLL':
                 ubs = bounds["ubs"]
     
                 # Lower bound on probability of true label
-                pStarLB[i, m, e] = lbs[-1][yt[i]]
+                pStarLB[i, m, e] = lbs[-1][np.array([yt[i]]).flatten()[0]]
     
     # Average over models, take negative log, and average over instances
     print(-np.log(pStarLB.mean(axis=1)).mean(axis=0))
