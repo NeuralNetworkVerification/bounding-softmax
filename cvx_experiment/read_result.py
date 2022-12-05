@@ -10,7 +10,7 @@ LB = ['lin', 'ER', 'LSE']
 SCORE = sys.argv[1]
 NETWORK = sys.argv[2]
 
-objs = np.zeros((100, len(LB), len(EPS)))
+objs = np.ones((100, len(LB), len(EPS)))
 logitss = []
 probss = []
 
@@ -36,12 +36,14 @@ for filename in os.listdir("results"):
                 obj, logits, probs = pickle.load(f)
                 e = EPS.index(eps)
                 b = LB.index(lb)
+                if ub == "ER":
+                    continue
                 objs[ind, b, e] = obj
                 logitss.append(logits)
                 probss.append(probs)
 
-print(-np.log(-objs))
-
+print(objs)
+                
 if SCORE == 'NLL':
     # Negative log of (lower bound on) probability
     objs = -np.log(-objs)

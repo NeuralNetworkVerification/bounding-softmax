@@ -307,7 +307,7 @@ if __name__ == '__main__':
         if network == 'mnist-large':
             prob.solve(solver='SCS', verbose=True, acceleration_lookback=0, max_iters=int(1e5))
         else:
-            prob.solve(solver='SCS', verbose=True, acceleration_lookback=0, max_iters=int(1e4))
+            prob.solve(solver='SCS', verbose=True, acceleration_lookback=0, max_iters=int(1e5))
 
         print(f'Status: {prob.status}')
         print(f'Objective value = {prob.value}')
