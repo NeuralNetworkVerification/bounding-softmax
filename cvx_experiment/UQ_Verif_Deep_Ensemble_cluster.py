@@ -154,7 +154,11 @@ if __name__ == '__main__':
                     # Input layer
                     z[m][ll] = x0 @ w[m][ll] + b[m][ll]
                 else:
-                    z[m][ll] = xa[m][ll-1] @ w[m][ll][active[m][ll-1], :] + xu[m][ll-1] @ w[m][ll][unstable[m][ll-1], :] + b[m][ll]
+                    nUnstable = unstable[m][ll-1].sum()
+                    if nUnstable == unstable[m][ll-1].shape[0]:
+                        z[m][ll] = xu[m][ll-1] @ w[m][ll][unstable[m][ll-1], :] + b[m][ll]
+                    else:
+                        z[m][ll] = xa[m][ll-1] @ w[m][ll][active[m][ll-1], :] + xu[m][ll-1] @ w[m][ll][unstable[m][ll-1], :] + b[m][ll]
                 
                 # Define active neurons
                 xa[m][ll] = z[m][ll][active[m][ll]]
