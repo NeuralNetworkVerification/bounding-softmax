@@ -9,4 +9,4 @@ ind=$2
 eps=$3
 t=$4
 
-./Marabou/resources/runMarabou.py $network --dataset=mnist -e $eps -i $ind --softmax-bound $t --verbosity=0  --dump-bounds
+./Marabou/resources/runMarabou.py training/$network --dataset=mnist -e $eps -i $ind --softmax-bound $t --verbosity=0  --dump-bounds
