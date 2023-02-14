@@ -298,5 +298,5 @@ if __name__ == '__main__':
     print(f'Mean objective value = {obj}')
     
     data = [obj, logits, probs]
-    with open(f'results/{network}_ind{i}_eps{eps}_lb{LBtype}_ub{UBtype}_score{scoring}_results.pickle', 'wb') as f:
+    with open(f'results/{network}_ind{i}_eps{eps}_lb{LBtype}_ub{UBtype}_score{scoring}_separate_results.pickle', 'wb') as f:
         pickle.dump(data, f)

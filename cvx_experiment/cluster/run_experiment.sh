@@ -10,7 +10,7 @@ lb=$4
 ub=$5
 score=$6
 
-python UQ_Verif_Deep_Ensemble_cluster.py --network $network --eps $eps --index $index --lb $lb --ub $ub --scoring $score 
+python UQ_Verif_Deep_Ensemble_separate.py --network $network --eps $eps --index $index --lb $lb --ub $ub --scoring $score 
 
 #--lb LB            ER, or LSE
 #--ub UB            LSE
