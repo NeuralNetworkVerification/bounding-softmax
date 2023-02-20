@@ -5,7 +5,7 @@ i = 1
 with open("benchmark_set_all", 'r') as in_file:
     for line in in_file.readlines():
         s = line.split()
-        result = open(f"history/slurm-{i}.log", 'r').read().split("\n")
+        result = open(f"history_all_feb_13/all/slurm-{i}/run.out", 'r').read().split("\n")
         if "unsat" in result:
             print(",".join(s) + ",unsat")
         elif "misclassify!" in result:

@@ -7,7 +7,7 @@ do
     do
 	for t in linear er lse1 lse2
 	do
-	    for e in 0.015 0.0025 0.0035 0.0045 0.005 0.0055 0.006
+	    for e in 0.02 0.04 0.06 0.08 0.1 0.12 0.14 0.16
 	    do
 		echo $network $i $e $t
 	    done

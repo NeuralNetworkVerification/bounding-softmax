@@ -8,11 +8,11 @@ output_path = "./self-attention-sst-sim-embedding.onnx"
 model = onnx.load(input_path)
 
 onnx.utils.extract_model(input_path, output_path, input_names=["input_1"],
-                         output_names=["model/reshape/Reshape:0"])
+                         output_names=["model/dense/Relu:0"])
 
 # need to reshape to 2 x 8
 
 output_path = "./self-attention-sst-sim-post-embedding.onnx"
 onnx.utils.extract_model(input_path, output_path,
-                         input_names=["model/reshape/Reshape:0"],
+                         input_names=["model/dense/Relu:0"],
                          output_names=["model/dense_1/BiasAdd:0"])
