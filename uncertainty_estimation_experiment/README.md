@@ -19,20 +19,20 @@ These bounds are generated using the DeepPoly analysis in Marabou.
 
 Install the python packages in `requirements.txt`
 
-The main experiment script is `UQ_Verif_Deep_Ensemble_cluster.py`, which performs the uncertainty quantification tasks as described in Sec. 7.1. The script requires 6 arguments:
+The main experiment script is `run_experiment.sh` which executes `UQ_Verif_Deep_Ensemble.py`, which performs the uncertainty quantification tasks as described in Sec. 7.1. The script requires 6 arguments:
 
-- --network: the network to verify
-- --eps: the l-inf perturbation on the input
-- --index: the index of the test image
-- --lb: types of softmax lower-bound to use
-- --ub: types of softmax upper-bound to use
-- --scoring: the scoring function
+- network: the network to verify
+- eps: the l-inf perturbation on the input
+- index: the index of the test image
+- lb: types of softmax lower-bound to use
+- ub: types of softmax upper-bound to use
+- scoring: the scoring function
 
 Run `UQ_Verif_Deep_Ensemble_cluster.py --help` to see the possible values for these arguments.
 
 For example:
 
-`python UQ_Verif_Deep_Ensemble.py --network mnist --eps 0.008 --index0 --lb LSE --ub LSE --scoring Brier`
+`./run_experiment.sh mnist 0.008 0 LSE LSE Brier`
 
 If the experiment is successfully run, an pickle file `mnist_ind0_eps0.008_lbLSE_ubLSE_scoreBrier_results.pickle` will be created in the result folder.
 
