@@ -13,7 +13,7 @@ The ensemble model used in Table 10 is robust_mnist-large-{0,1,2,3,4}.onnx.
 
 The bound folder contains the neuron bounds of a network on l-inf eps-ball around a mnist/cifar10 test image. For example, `bounds_net0_ind0_eps0.008` contains the neuron bounds of `mnist-0.onnx` given a perturbation of radius 0.008 around the first test image.
 
-These bounds are generated using the DeepPoly analysis in Marabou.
+These bounds are generated using the DeepPoly analysis implemented in Marabou.
 
 # Running the experiment
 
