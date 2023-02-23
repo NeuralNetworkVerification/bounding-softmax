@@ -3,12 +3,14 @@
 
 To reproduce the experimental results, first clone the Marabou branch below and install the tool:
 
-`git clone https://github.com/anwu1219/Marabou`
-`git checkout softmax-bound`
-`mkdir build`
-`cd build`
-`cmake ../`
-`make -j12`
+```
+git clone https://github.com/anwu1219/Marabou
+git checkout softmax-bound
+mkdir build
+cd build
+cmake ../
+make -j12
+```
 
 
 # Models
@@ -21,9 +23,9 @@ The transformer model used in Table 5 is self-attention-sst-sim.onnx
 
 # Running the experiment
 
-One can use `run_experiment_{mnist,sst}.sh" to run robustness verification on the models:
+One can use `run_experiment_{mnist,sst}.sh` to run robustness verification on the models:
 
-`run_experiment_{mnist,sst}.sh [network] [index] [epsilon] [bound type]
+```run_experiment_{mnist,sst}.sh [network] [index] [epsilon] [bound type]```
 
 The softmax bound type is one of linear, er, lse1, lse2
 
@@ -33,7 +35,7 @@ For example:
 
 This should print "unsat" in the last line.
 
-In general, the result is either unknown, which means the network is not necessarily robust or unsat, meaning the network is robust w.r.t. the test image and the perturbation bound.
+In general, the result is either *unknown*, which means the network is not necessarily robust, or *unsat*, meaning the network is robust w.r.t. the test image and the perturbation bound.
 
 To reproduce Table 4, run `run_experiment_mnist.sh` for each line in all_arguments_mnist
 
